@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <!-- properties -->
+
+  <springProperty scope="context" name="LOG_LEVEL_ROOT" source="logback.level.root"/>
+  <springProperty scope="context" name="LOG_LEVEL_SPRING" source="logback.level.spring"/>
+  <springProperty scope="context" name="LOG_LEVEL_APP" source="logback.level.app"/>
+
+  <property name="logEntryPatternSimple"
+            value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%-21.25thread] [%-5level] %logger{20} - %msg%n"/>
+
+  <!-- appenders -->
+
+  <appender name="ALL_TO_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${logEntryPatternSimple}</pattern>
+    </encoder>
+  </appender>
+
+  <!-- loggers -->
+
+  <root level="${LOG_LEVEL_ROOT}">
+    <appender-ref ref="ALL_TO_CONSOLE"/>
+  </root>
+
+  <logger name="org.springframework" additivity="false" level="${LOG_LEVEL_SPRING}">
+    <appender-ref ref="ALL_TO_CONSOLE"/>
+  </logger>
+
+  <logger name="sn.sandbox.mirowidgets" additivity="false" level="${LOG_LEVEL_APP}">
+    <appender-ref ref="ALL_TO_CONSOLE"/>
+  </logger>
+</configuration>
