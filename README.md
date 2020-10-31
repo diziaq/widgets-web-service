@@ -10,3 +10,21 @@ Z-index is a widget's attribute determining its order among other widgets along 
 - X, Y, Z-index are integers.
 - WIDTH and HEIGHT are positive integers.
 - all attributes are not nullable.
+
+## Project basic routines
+
+#### Code coverage
+- start tests: `> mvn clean test`
+- explore details in `target/site/jacoco/index.html`
+
+#### Build artifact and run it
+- `> mvn clean package`
+- `> cd target`
+- `> java -jar widget-web-service.jar`
+
+#### Run application in place (via maven plugin)
+ 
+###### default:
+`> mvn clean spring-boot:run`
+###### recommended for local development:
+`> mvn clean spring-boot:run -D spring-boot.run.profiles=developer`

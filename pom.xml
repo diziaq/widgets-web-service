@@ -24,6 +24,7 @@
     <version.plugin.maven.resources>3.2.0</version.plugin.maven.resources>
     <version.plugin.maven.surefire>3.0.0-M4</version.plugin.maven.surefire>
     <version.plugin.maven.failsafe>${version.plugin.maven.surefire}</version.plugin.maven.failsafe>
+    <version.plugin.maven.jar>3.2.0</version.plugin.maven.jar>
 
     <result.jar.name>widget-web-service</result.jar.name>
     <result.main.class.name>sn.sandbox.mirowidgets.ApplicationMain</result.main.class.name>
@@ -117,6 +118,7 @@
           <source>${version.java}</source>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
@@ -179,6 +181,14 @@
         <version>${version.plugin.maven.resources}</version>
         <configuration>
           <encoding>${encoding.resources}</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${version.plugin.maven.jar}</version>
+        <configuration>
+          <finalName>${result.jar.name}</finalName>
         </configuration>
       </plugin>
     </plugins>
