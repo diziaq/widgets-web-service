@@ -3,6 +3,8 @@ package sn.sandbox.mirowidgets.application.core;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import sn.sandbox.mirowidgets.application.core.impl.Mold;
+import sn.sandbox.mirowidgets.infrastructure.repository.WidgetsRepository;
 
 
 public interface WidgetsFacade {
@@ -28,5 +30,9 @@ public interface WidgetsFacade {
     Mono<Widget> replace(Id id, WidgetSpec spec);
 
     Mono<Void> delete(Id id);
+  }
+
+  static WidgetsFacade createWithRepository(WidgetsRepository repository, WidgetsMapping mapping) {
+    return Mold.widgetsFacadeBasedOnRepository(repository, mapping);
   }
 }
