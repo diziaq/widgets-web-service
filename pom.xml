@@ -80,6 +80,11 @@
       <version>${version.hamcrest}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-test</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <dependencyManagement>
@@ -118,7 +123,6 @@
           <source>${version.java}</source>
         </configuration>
       </plugin>
-
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
@@ -145,12 +149,12 @@
             <configuration>
               <rules>
                 <rule>
-                  <element>PACKAGE</element>
+                  <element>BUNDLE</element>
                   <limits>
                     <limit>
-                      <counter>LINE</counter>
+                      <counter>INSTRUCTION</counter>
                       <value>COVEREDRATIO</value>
-                      <minimum>100%</minimum>
+                      <minimum>96%</minimum>
                     </limit>
                   </limits>
                 </rule>
