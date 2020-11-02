@@ -4,8 +4,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,10 +15,8 @@ import org.junit.jupiter.api.Test;
 
 class WidgetTableAcidReadWriteWaitingTest {
 
-  private static final long STANDARD_DELAY_MILLI = 100L;
-
   private WidgetTableAcid<String, Integer, Sample> table;
-
+  private Semaphore writeActionSemaphore;
   private Sample targetSample;
 
   @BeforeEach
@@ -28,13 +28,43 @@ class WidgetTableAcidReadWriteWaitingTest {
     );
 
     targetSample = new Sample("target", 12345);
-    table = new WidgetTableAcid<>(new SlowDoubleKeyRack(STANDARD_DELAY_MILLI, targetSample), strategy);
+    writeActionSemaphore = new Semaphore(1, true);
+    table = new WidgetTableAcid<>(new SemaphoredDoubleKeyRack(writeActionSemaphore, targetSample), strategy);
+  }
+
+  @AfterEach
+  void releaseSemaphores() {
+    writeActionSemaphore.release();
+  }
+
+  private static void ensurePendingOn(Semaphore semaphore, Runnable runnable) {
+    try {
+      semaphore.acquire();
+      runnable.run();
+      ensureThreadsAreQueuedOn(semaphore);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static void ensureThreadsAreQueuedOn(Semaphore semaphore) {
+    int attempts = 100;
+    while (!semaphore.hasQueuedThreads()) {
+      sleepFor(10);
+      attempts -= 1;
+      if (attempts < 0) {
+        throw new RuntimeException("No queued threads found on semaphore");
+      }
+    }
   }
 
   @Test
   @DisplayName("when insert() in progress then findAll() does not wait")
   void whenInsertThenFindAllDoesNotWait() {
-    table.insert(new Sample("jkfdha", 1)).subscribe();
+    ensurePendingOn(
+        writeActionSemaphore,
+        () -> table.insert(new Sample("jkfdha", 1)).subscribe()
+    );
 
     var result = table.findAll().collect(Collectors.toList()).block();
 
@@ -44,7 +74,10 @@ class WidgetTableAcidReadWriteWaitingTest {
   @Test
   @DisplayName("when update() in progress then findAll() does not wait")
   void whenUpdateThenFindAllDoesNotWait() {
-    table.update(new Sample("ahahssh", 1)).subscribe();
+    ensurePendingOn(
+        writeActionSemaphore,
+        () -> table.update(new Sample("ahahssh", 1)).subscribe()
+    );
 
     var result = table.findAll().collect(Collectors.toList()).block();
 
@@ -54,7 +87,10 @@ class WidgetTableAcidReadWriteWaitingTest {
   @Test
   @DisplayName("when delete() in progress then findAll() does not wait")
   void whenDeleteThenFindAllDoesNotWait() {
-    table.delete("auke").subscribe();
+    ensurePendingOn(
+        writeActionSemaphore,
+        () -> table.delete("uroieie").subscribe()
+    );
 
     var result = table.findAll().collect(Collectors.toList()).block();
 
@@ -64,8 +100,11 @@ class WidgetTableAcidReadWriteWaitingTest {
 
   @Test
   @DisplayName("when update() in progress then findById() does not wait")
-  void whenInsertThenFindByIdDoesNotWait() {
-    table.update(new Sample("hkdsks", 16146)).subscribe();
+  void whenInsertThenFindByIdDoesNotWait() throws Exception {
+    ensurePendingOn(
+        writeActionSemaphore,
+        () -> table.update(new Sample("hkdsks", 16146)).subscribe()
+    );
 
     var result = table.findById("target").block();
 
@@ -74,8 +113,11 @@ class WidgetTableAcidReadWriteWaitingTest {
 
   @Test
   @DisplayName("when update() in progress then findById() does not wait")
-  void whenUpdateThenFindByIdDoesNotWait() {
-    table.update(new Sample("jajsajsj", 2462)).subscribe();
+  void whenUpdateThenFindByIdDoesNotWait() throws Exception {
+    ensurePendingOn(
+        writeActionSemaphore,
+        () -> table.update(new Sample("jajsajsj", 2462)).subscribe()
+    );
 
     var result = table.findById("target").block();
 
@@ -84,8 +126,11 @@ class WidgetTableAcidReadWriteWaitingTest {
 
   @Test
   @DisplayName("when delete() in progress then findById() does not wait")
-  void whenDeleteThenFindByIdDoesNotWait() {
-    table.update(new Sample("jajsajsj", 31561)).subscribe();
+  void whenDeleteThenFindByIdDoesNotWait() throws Exception {
+    ensurePendingOn(
+        writeActionSemaphore,
+        () -> table.update(new Sample("jajsajsj", 31561)).subscribe()
+    );
 
     var result = table.findById("target").block();
 
@@ -95,12 +140,16 @@ class WidgetTableAcidReadWriteWaitingTest {
   @Test
   @DisplayName("when multiple writes in progress then findById() does not wait")
   void whenMultipleWritesThenFindByIdDoesNotWait() {
-
-    table.insert(new Sample("A", 31561)).subscribe();
-    table.insert(new Sample("B", 6574)).subscribe();
-    table.update(new Sample("C", 48)).subscribe();
-    table.update(new Sample("B", 31561)).subscribe();
-    table.delete("B").subscribe();
+    ensurePendingOn(
+        writeActionSemaphore,
+        () -> {
+          table.insert(new Sample("A", 31561)).subscribe();
+          table.insert(new Sample("B", 6574)).subscribe();
+          table.update(new Sample("C", 48)).subscribe();
+          table.update(new Sample("B", 31561)).subscribe();
+          table.delete("B").subscribe();
+        }
+    );
 
     var result = table.findById("target").block();
 
@@ -124,47 +173,52 @@ class WidgetTableAcidReadWriteWaitingTest {
   }
 
 
-  private static class SlowDoubleKeyRack implements DoubleKeyRack<String, Integer, Sample> {
+  private static class SemaphoredDoubleKeyRack implements DoubleKeyRack<String, Integer, Sample> {
 
-    private final long delayOfWriteOperation;
     private final Sample firstSample;
+    private final Semaphore writeActionsSemaphore;
 
-    SlowDoubleKeyRack(long delayOfWriteOperation, Sample firstSample) {
-      this.delayOfWriteOperation = delayOfWriteOperation;
+    SemaphoredDoubleKeyRack(Semaphore writeActionsSemaphore, Sample firstSample) {
+      this.writeActionsSemaphore = writeActionsSemaphore;
       this.firstSample = firstSample;
     }
 
     @Override
     public Sample[] dumpAll() {
-      sleepFor(delayOfWriteOperation);
       return new Sample[]{firstSample};
     }
 
     @Override
     public Sample readByKey1(String key1) {
-      sleepFor(delayOfWriteOperation);
       return firstSample.key1.equals(key1) ? firstSample : null;
     }
 
     @Override
     public Sample readByKey2(Integer key2) {
-      sleepFor(delayOfWriteOperation);
       return firstSample.key2.equals(key2) ? firstSample : null;
     }
 
     @Override
     public Sample inject(Sample value) {
-      sleepFor(delayOfWriteOperation);
+      execute(writeActionsSemaphore::acquire);
       return value;
     }
 
     @Override
     public Sample ejectByKey1(String key1) {
-      sleepFor(delayOfWriteOperation);
+      execute(writeActionsSemaphore::acquire);
       return null;
     }
-
   }
+
+  private static void execute(ThrowingRunnable runnable) {
+    try {
+      runnable.run();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 
   private static void sleepFor(long milli) {
     try {
@@ -172,5 +226,10 @@ class WidgetTableAcidReadWriteWaitingTest {
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private interface ThrowingRunnable {
+
+    void run() throws Exception;
   }
 }
