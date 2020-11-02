@@ -23,6 +23,9 @@ public class WidgetRoutes {
         route(GET(""), handler::get)
             .andRoute(GET("{id}"), handler::getById)
             .andRoute(POST(""), handler::post)
+            .andRoute(PATCH("{id}"), handler::patchById)
+            .andRoute(PUT("{id}"), handler::putById)
+            .andRoute(DELETE("{id}"), handler::deleteById)
     );
   }
 

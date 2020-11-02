@@ -32,4 +32,8 @@ public final class Responses {
   public static Mono<ServerResponse> ok(Flux<?> responseBody) {
     return ServerResponse.ok().body(responseBody, Object.class);
   }
+
+  public static Mono<ServerResponse> noContent(Mono<Void> responseBody) {
+    return ServerResponse.status(HttpStatus.NO_CONTENT).body(responseBody, Object.class);
+  }
 }

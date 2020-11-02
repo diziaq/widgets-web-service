@@ -28,3 +28,24 @@ Z-index is a widget's attribute determining its order among other widgets along 
 `> mvn clean spring-boot:run`
 ###### recommended for local development:
 `> mvn clean spring-boot:run -D spring-boot.run.profiles=developer`
+
+
+## Available endpoints
+
+###### all endpoints respect REST API conventions
+> body format for mutation methods (POST, PUT, PATCH)\
+`{"x": <int>, "y": <int>, "zIndex": <int>, "width": <positive int>, "height":<positive int>}`\
+> POST, PUT require all properties\
+> PATCH allows omitting unchanged properties
+
+
+- GET /widgets 
+  > `get array of all available widgets sorted by zIndex`
+- POST /widgets
+  > `create one widget`
+- PUT /widgets/{id}
+  > `replace one widget`
+- PATCH /widgets/{id}
+  > `change properties of one widget`
+- DELETE /widgets/{id}
+  > `remove one widget`

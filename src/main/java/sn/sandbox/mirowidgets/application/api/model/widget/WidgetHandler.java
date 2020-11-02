@@ -47,4 +47,39 @@ final class WidgetHandler {
 
     return Responses.created(responseBody, "widgets", x -> x.id);
   }
+
+  /*
+   */
+  Mono<ServerResponse> putById(ServerRequest request) {
+    var id = request.pathVariable("id");
+    var responseBody = request.bodyToMono(WidgetRequestJsonBody.class)
+                              .map(dataFlow::specForPostOrPut)
+                              .flatMap(r -> facade.command().replace(dataFlow.idFrom(id), r))
+                              .map(dataFlow::toResponse);
+
+    return Responses.ok(responseBody);
+  }
+
+  /*
+   */
+  Mono<ServerResponse> patchById(ServerRequest request) {
+    var id = request.pathVariable("id");
+    var responseBody = request.bodyToMono(WidgetRequestJsonBody.class)
+                              .map(dataFlow::specForPatch)
+                              .flatMap(r -> facade.command().update(dataFlow.idFrom(id), r))
+                              .map(dataFlow::toResponse);
+
+    return Responses.ok(responseBody);
+  }
+
+  /*
+   */
+  Mono<ServerResponse> deleteById(ServerRequest request) {
+    var id = request.pathVariable("id");
+    var responseBody = Mono.just(id)
+                           .map(dataFlow::idFrom)
+                           .flatMap(x -> facade.command().delete(x));
+
+    return Responses.noContent(responseBody);
+  }
 }

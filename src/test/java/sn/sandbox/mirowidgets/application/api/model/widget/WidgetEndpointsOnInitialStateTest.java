@@ -45,4 +45,50 @@ class WidgetEndpointsOnInitialStateTest extends WebEndpointsBase {
           .jsonPath("$.status").isEqualTo(404)
           .jsonPath("$.error").isEqualTo("Not Found");
   }
+
+  @Test
+  @DisplayName("when initial state then PUT /update/{id} return NOT_FOUND and error body")
+  void testPutWidgetsId() {
+
+    client.put()
+          .uri("/widgets/463863")
+          .contentType(MediaType.APPLICATION_JSON)
+          .bodyValue(RESOURCE.from("valid_request_body.json"))
+          .exchange()
+          .expectStatus().isEqualTo(HttpStatus.NOT_FOUND)
+          .expectBody()
+          .jsonPath("$.timestamp").exists()
+          .jsonPath("$.status").isEqualTo(404)
+          .jsonPath("$.error").isEqualTo("Not Found");
+  }
+
+  @Test
+  @DisplayName("when initial state then PATCH /widgets/{id} return NOT_FOUND and error body")
+  void testPatchWidgetsId() {
+
+    client.patch()
+          .uri("/widgets/562572828")
+          .contentType(MediaType.APPLICATION_JSON)
+          .bodyValue(RESOURCE.from("valid_request_body.json"))
+          .exchange()
+          .expectStatus().isEqualTo(HttpStatus.NOT_FOUND)
+          .expectBody()
+          .jsonPath("$.timestamp").exists()
+          .jsonPath("$.status").isEqualTo(404)
+          .jsonPath("$.error").isEqualTo("Not Found");
+  }
+
+  @Test
+  @DisplayName("when initial state then DELETE /widgets/{id} return NOT_FOUND and error body")
+  void testDeleteWidgetsId() {
+
+    client.patch()
+          .uri("/widgets/938636725")
+          .exchange()
+          .expectStatus().isEqualTo(HttpStatus.NOT_FOUND)
+          .expectBody()
+          .jsonPath("$.timestamp").exists()
+          .jsonPath("$.status").isEqualTo(404)
+          .jsonPath("$.error").isEqualTo("Not Found");
+  }
 }
